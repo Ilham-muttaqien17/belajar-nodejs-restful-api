@@ -244,3 +244,38 @@ describe('PATCH /api/users/current', () => {
     })
 
 })
+
+describe('DELETE /api/users/logout', () => {
+    beforeEach(async () => {
+        await createTestUser()
+    })
+
+    afterEach(async () => {
+        await removeTestUser();
+    })
+
+    it('should can logout', async() => {
+        const result = await supertest(web)
+                                .delete('/api/users/logout')
+                                .set('Authorization', 'Bearer test')
+                        
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data).toBe("OK")
+
+        const user = await getTestUser()
+        expect(user.token).toBe(null)
+    })
+
+    it('should reject if user is not authorized', async() => {
+        const result = await supertest(web)
+                                .delete('/api/users/logout')
+                                .set('Authorization', 'Bearer asd')
+                        
+        logger.info(result.body)
+
+        expect(result.status).toBe(401)
+        expect(result.body.errors).toBeDefined()
+    })
+})
