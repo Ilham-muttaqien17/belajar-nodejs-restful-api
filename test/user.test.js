@@ -1,7 +1,8 @@
 import supertest from 'supertest'
 import { web } from '../src/app/web.js'
 import { logger } from '../src/app/logging.js'
-import { createTestUser, removeTestUser } from './test_util.js'
+import { createTestUser, getTestUser, removeTestUser } from './test_util.js'
+import bcrypt from 'bcrypt'
 
 describe('POST /api/users', () => {
 
@@ -165,4 +166,81 @@ describe('GET /api/users/current', () => {
         expect(result.status).toBe(401)
         expect(result.body.errors).toBeDefined()
     })
+})
+
+describe('PATCH /api/users/current', () => {
+    beforeEach(async () => {
+        await createTestUser()
+    })
+
+    afterEach(async () => {
+        await removeTestUser();
+    })
+
+    it('should can update user name and password', async() => {
+        let result = await supertest(web)
+                            .patch('/api/users/current')
+                            .send({
+                                name: "tester",
+                                password: "123321"
+                            })
+                            .set('Authorization', 'Bearer test')
+                            
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.username).toBe('test')
+        expect(result.body.data.name).toBe('tester')
+
+        const user = await getTestUser()
+        expect(await bcrypt.compare("123321", user.password)).toBe(true)
+    })
+
+    it('should can update user name', async() => {
+        let result = await supertest(web)
+                            .patch('/api/users/current')
+                            .send({
+                                name: "tester",
+                            })
+                            .set('Authorization', 'Bearer test')
+                            
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.username).toBe('test')
+        expect(result.body.data.name).toBe('tester')
+    })
+
+    it('should can update user password', async() => {
+        let result = await supertest(web)
+                            .patch('/api/users/current')
+                            .send({
+                                password: "123321"
+                            })
+                            .set('Authorization', 'Bearer test')
+                            
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.username).toBe('test')
+        expect(result.body.data.name).toBe('test')
+
+        const user = await getTestUser()
+        expect(await bcrypt.compare("123321", user.password)).toBe(true)
+    })
+
+    it('should reject if user is not authorized', async() => {
+        let result = await supertest(web)
+                            .patch('/api/users/current')
+                            .send({
+                                name: "tester",
+                                password: "123123"
+                            })
+                            
+        logger.info(result.body)
+
+        expect(result.status).toBe(401)
+        expect(result.body.errors).toBeDefined()
+    })
+
 })
