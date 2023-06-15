@@ -146,7 +146,7 @@ Response Body Success :
 Response Body Error  :
 ```json
 {
-    
+    "errors": "Unauhtorized"
 }
 ```
 
