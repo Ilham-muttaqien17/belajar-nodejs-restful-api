@@ -3,6 +3,7 @@
 ## Register User API
 
 Endpoint :  POST /api/users
+
 Request Body :
 ```json
 {
@@ -31,6 +32,7 @@ Response Body Error :
 ## Login User API
 
 Endpoint : POST /api/users/login
+
 Request Body :
 ```json
 {
