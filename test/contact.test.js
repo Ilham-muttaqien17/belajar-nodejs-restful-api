@@ -215,3 +215,53 @@ describe('PUT /api/contacts/:contactId', () => {
         expect(result.body.errors).toBeDefined()
     })
 }) 
+
+describe('DELETE /api/contacts/:contactId', () => {
+    beforeEach(async() => {
+        await createTestUser()
+        await createTestContact()
+    })
+
+    afterEach(async() => {
+        await removeTestContact()
+        await removeTestUser()
+    })
+
+    it('should can delete contact', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                                .delete(`/api/contacts/${testContact.id}`)
+                                .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data).toBe("OK")
+    })
+
+    it('should reject if user is not authorized', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                                .delete(`/api/contacts/${testContact.id}`)
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(401)
+        expect(result.body.errors).toBeDefined()
+    })
+
+    it('should return 404 if contact is not found', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                                .delete(`/api/contacts/${testContact.id + 1}`)
+                                .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(404)
+        expect(result.body.errors).toBeDefined()
+    })
+})
