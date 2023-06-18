@@ -32,7 +32,7 @@ const updateContact = async(req, res, next) => {
         const contactId = req.params.contactId
         const request = req.body
         request.id = contactId
-        
+
         const result = await contactService.updateContact(username, request)
         res.status(200).json({
             data: result
@@ -43,8 +43,23 @@ const updateContact = async(req, res, next) => {
     }
 }
 
+const deleteContact = async(req, res, next) => {
+    try {
+        const { username } = req.user
+        const contactId = req.params.contactId
+        
+        await contactService.deleteContact(username, contactId)
+        res.status(200).json({
+            data: "OK"
+        })
+    } catch(err) {
+        next(err)
+    }
+}
+
 export default {
     createContact,
     getContact,
-    updateContact
+    updateContact,
+    deleteContact
 }
