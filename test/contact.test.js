@@ -124,3 +124,94 @@ describe('GET /api/contacts/:contactId', () => {
         expect(result.body.errors).toBeDefined()
     })
 })
+
+describe('PUT /api/contacts/:contactId', () => {
+    beforeEach(async() => {
+        await createTestUser()
+        await createTestContact()
+    })
+
+    afterEach(async() => {
+        await removeTestContact()
+        await removeTestUser()
+    })
+
+    it('should can update contact', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .put(`/api/contacts/${testContact.id}`)
+                            .send({
+                                first_name: "second",
+                                last_name: "second",
+                                email: "second@gmail.com",
+                                phone: "08111"
+                            })
+                            .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.id).toBe(testContact.id)
+        expect(result.body.data.first_name).toBe("second")
+        expect(result.body.data.last_name).toBe("second")
+        expect(result.body.data.email).toBe("second@gmail.com")
+        expect(result.body.data.phone).toBe("08111")
+    })
+
+    it('should reject if user is not authorized', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .put(`/api/contacts/${testContact.id}`)
+                            .send({
+                                first_name: "second",
+                                last_name: "second",
+                                email: "second@gmail.com",
+                                phone: "08111"
+                            })
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(401)
+        expect(result.body.errors).toBeDefined()
+    })
+
+    it('should return 404 if contact is not found', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .put(`/api/contacts/${testContact.id + 1}`)
+                            .send({
+                                first_name: "second",
+                                last_name: "second",
+                                email: "second@gmail.com",
+                                phone: "08111"
+                            })
+                            .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(404)
+        expect(result.body.errors).toBeDefined()
+    })
+
+    it('should reject if request in not valid', async() => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .put(`/api/contacts/${testContact.id}`)
+                            .send({
+                                first_name: "",
+                                last_name: "second",
+                                email: "second",
+                                phone: "08111123123123123123123"
+                            })
+                            .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(400)
+        expect(result.body.errors).toBeDefined()
+    })
+}) 
