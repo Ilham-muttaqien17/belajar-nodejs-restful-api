@@ -1,5 +1,5 @@
 import supertest from "supertest"
-import { createTestUser, removeTestContact, removeTestUser } from "./test_util.js"
+import { createTestContact, createTestUser, getTestContact, removeTestContact, removeTestUser } from "./test_util.js"
 import { web } from "../src/app/web.js"
 import { logger } from "../src/app/logging.js"
 import e from "express"
@@ -66,6 +66,61 @@ describe('POST /api/contacts', () => {
         logger.info(result.body)
 
         expect(result.status).toBe(400 )
+        expect(result.body.errors).toBeDefined()
+    })
+})
+
+describe('GET /api/contacts/:contactId', () => {
+
+    beforeEach(async() => {
+        await createTestUser()
+        await createTestContact()
+    })
+
+    afterEach(async() => {
+        await removeTestContact()
+        await removeTestUser()
+    })
+
+    it('should can get contact', async () => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .get(`/api/contacts/${testContact.id}`)
+                            .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(200)
+        expect(result.body.data.id).toBe(testContact.id)
+        expect(result.body.data.first_name).toBe(testContact.first_name)
+        expect(result.body.data.last_name).toBe(testContact.last_name)
+        expect(result.body.data.email).toBe(testContact.email)
+        expect(result.body.data.phone).toBe(testContact.phone)
+    })
+
+    it('should reject if contact is not found', async () => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .get(`/api/contacts/${testContact.id + 1}`)
+                            .set('Authorization', 'Bearer test')
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(404)
+        expect(result.body.errors).toBeDefined()
+    })
+
+    it('should reject if user is not authorized', async () => {
+        const testContact = await getTestContact()
+
+        const result = await supertest(web)
+                            .get(`/api/contacts/${testContact.id}`)
+
+        logger.info(result.body)
+
+        expect(result.status).toBe(401)
         expect(result.body.errors).toBeDefined()
     })
 })
