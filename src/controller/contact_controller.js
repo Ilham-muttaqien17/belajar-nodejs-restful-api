@@ -13,6 +13,20 @@ const createContact = async(req, res, next) => {
     }
 }
 
+const getContact = async(req, res , next) => {
+    try {
+        const { username } = req.user
+        const contactId = req.params.contactId
+        const result = await contactService.getContact(username, contactId)
+        res.status(200).json({
+            data: result
+        })
+    } catch(err) {
+        next(err)
+    }
+}
+
 export default {
-    createContact
+    createContact,
+    getContact
 }
